@@ -1,0 +1,26 @@
+.topmargin{
+	margin-top:50px;
+}
+.block_id_heeder{
+	font-weight: bold;
+}
+.word_wraps{
+	word-wrap: break-word;
+	table-layout: fixed;
+}
+.word_break{
+	word-break: break-all;
+}
+.positiv_nr{
+	color:#54964c;
+}
+.negativ_nr{
+	color:#ba4141;
+}
+.header_bold_text{
+	font-weight: bold;
+}
+.laba{
+	white-space:nowrap;
+}
+body { padding-bottom: 30px; }
