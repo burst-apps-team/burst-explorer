@@ -186,7 +186,7 @@ foreach ($show_block_transactions as $transaction){
 			?>
 				<!-- Button trigger modal -->
 				<a href="#" data-toggle="modal" data-target="#exampleModal">
-					View Multi-Out's
+					View Multi-Outs
 				</a>
 				<!-- Modal -->
 				<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
