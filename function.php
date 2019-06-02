@@ -313,7 +313,7 @@ function get_sold_goods($goods_id){
 // ------------------------------- Account ------------------------------------
 function get_multiout($recipient_id){
 	global $memcached;
-	if(!($result_count = $memcached->get('12get_multiout_'.$recipient_id))){
+	if(!($result_count = $memcached->get('get_multiout_'.$recipient_id))){
 		$result_count = query_execute('select count(*) as ct, sum(amount) as burst from parseMultiOut where recipient_id='.$recipient_id);
 		$memcached->set('get_multiout_'.$recipient_id, $result_count,240);
 		$result_count = $memcached->get('get_multiout_'.$recipient_id);
@@ -536,8 +536,8 @@ function time_elapsed_string($datetime, $full = false) {
 function transactions_type($type,$subtype){
 	$str = 'Transaction not defined:<br>Type:'.$type.'<br>Subtype'.$subtype;
 	if($type==0 && $subtype==0)$str='Ordinary Payment';
-	if($type==0 && $subtype==1)$str='Multiout Payment';
-	if($type==0 && $subtype==2)$str='Multiout Payment';
+	if($type==0 && $subtype==1)$str='Multi-Out Payment';
+	if($type==0 && $subtype==2)$str='Multi-Out Payment';
 	if($type==1 && $subtype==0)$str='Arbitrary Message';
 	if($type==1 && $subtype==1)$str='Alias Assignment';
 	if($type==1 && $subtype==5)$str='Account Update';
