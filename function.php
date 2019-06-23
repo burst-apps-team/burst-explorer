@@ -445,6 +445,10 @@ function search($str){
 		if($result){
 			return array('type' => 'transaction', 'height' => $result['height']);
 		}
+		$result = query_execute('select id from account where latest=1 and id='.fromUnsignedLong($str));
+		if($result){
+			return array('type' => 'account', 'ID' => toUnsignedLong($result['id']));
+		}
 	}
 	if(RS_decode($str)!=''){
 		$adr = RS_decode($str);
