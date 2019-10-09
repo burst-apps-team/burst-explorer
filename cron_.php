@@ -6,40 +6,53 @@
 */
 // This schedule / cronjob should run every minute
 
+include_once dirname(__FILE__).'/log.php';
+
+/*$time = time();
+if($time % 60 != 0){  // 每60秒执行一次
+    log::debug('cron_执行停止');
+    exit();
+}*/
+
 //if($_SERVER['REMOTE_ADDR'] != '8.8.4.4' && $_SERVER['REMOTE_ADDR']!='' )die('Not allowed');
-if($_SERVER['REMOTE_ADDR']!='' )die('Not allowed');
+if((isset($_SERVER['REMOTE_ADDR'])&&$_SERVER['REMOTE_ADDR']!='') )die('Not allowed');
 
 // Set max execution time to insure that its no longer than 60 seconds before new cron job start.
 //ini_set('max_execution_time', 55);
 $t1=time();
 
 // Database login details
-$db_server = ''; // ip:port
-$db_user = ''; // Database username
+$db_server = '127.0.0.1:3306'; // ip:port
+$db_user = 'root'; // Database username
 $db_pass = ''; // Database password
-$db_db = ''; // Database name
+$db_db = 'burstwallet'; // Database name
 
 $db_link = @mysqli_connect($db_server, $db_user, $db_pass) or die('('.mysqli_connect_errno().')');
 @mysqli_select_db($db_link, $db_db) or die('(2)');
-
-$memcached = new Memcached(); 
-$memcached->addServer("localhost", 11211);
+log::debug('mysqli连接成功！');
+$memcached = new Memcached();
+$memcached->addServer("127.0.0.1", 11211);
+log::debug('memcached连接成功！');
 
 $mail_headers = "MIME-Version: 1.0" . "\r\n";
 $mail_headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-$mail_headers .= 'From: no-reply@burstcoin.dk' . "\r\n"; //Enter your reply e-mail address
+$mail_headers .= 'From: xkjscmlxj@163.com' . "\r\n"; //Enter your reply e-mail address
 
 // Collect new peers for the Chart
 query_execute('INSERT INTO peer_char (`address`) SELECT address FROM peer where address not in (select address from peer_char)');
 $peers = query_to_array('select * from peer_char where 1');
 foreach($peers as $peer){
 		$result = call_api('localhost:8125/burst?requestType=getPeer&peer='.$peer['address']);
-		if($result['errorCode']==5 || $result['version']=='v0.0.0' || $result['version']=='')continue;
+		if(
+            (isset($result['errorCode'])&&$result['errorCode']==5) ||
+            (isset($result['version'])&& $result['version'] =='v0.0.0') ||
+            (isset($result['version'])&& $result['version']=='')
+        )continue;
 		query_execute_unsafe('update peer_char set brs_version="'.ltrim($result['version'],'v').'" where address="'.$peer['address'].'"');
 }
 echo 'peerversionupdated<br>';
 
-// Search for Multi-Out transactions and put it in the database
+// Search for Multi-Out transactions and put it in the database   搜索多出事务并将其放入数据库
 $last_block = query_execute('select height from block where 1 order by height desc limit 1');
 $blocks = query_to_array('select db_id, id, attachment_bytes from transaction where type=0 and subtype=1 and height>='.($last_block['height']-50));
 foreach($blocks as $block){
@@ -69,6 +82,7 @@ $pool_blocks = query_execute('select height from block_forger where 1 order by h
 if($pool_blocks['height']>=1)$block_height = $pool_blocks['height'];
 else $block_height = 1;
 
+$state = false;
 while($state==false){
 	$pool_blocks = query_execute('select generator_id from block where height='.$block_height);
 	if($pool_blocks['generator_id']!=''){
@@ -106,9 +120,11 @@ while($state==false){
 // Monitor if new account (welcome mail)
 $result = query_to_array_unsafe("select * from monitor where welcome='0'");
 foreach($result as $accounts){
-	query_to_array_unsafe("update monitor set welcome='1' where welcome='0'");
-	mail($accounts['email'],'Burst Notification System','Welcome to Burst Notification System<br><br>If you did not subscribe for e-mail notifications please click:<a href="https://explorer.burstcoin.network/?action=monitor&hash='.$accounts['passphrase'].'">Unsubscribe e-mail notifications</a>',$mail_headers);
-	query_execute('update monitor set send_mails=send_mails+1 where db_id='.$accounts['db_id']);
+    if($accounts){
+        query_to_array_unsafe("update monitor set welcome='1' where welcome='0'");
+        mail($accounts['email'],'Burst Notification System','Welcome to Burst Notification System<br><br>If you did not subscribe for e-mail notifications please click:<a href="https://explorer.burstcoin.network/?action=monitor&hash='.$accounts['passphrase'].'">Unsubscribe e-mail notifications</a>',$mail_headers);
+        query_execute('update monitor set send_mails=send_mails+1 where db_id='.$accounts['db_id']);
+    }
 }
 
 // Monitor if we have an account who forged a block og have balance change
@@ -149,10 +165,15 @@ foreach($result as $accounts){
 $peers = query_to_array('select * from peer_char where 1');
 foreach($peers as $peer){
 		$result = call_api('localhost:8125/burst?requestType=getPeer&peer='.$peer['address']);
-		if($result['errorCode']==5 || $result['version']=='v0.0.0' || $result['version']=='')continue;
+		if(
+            (isset($result['errorCode']) && $result['errorCode']==5) ||
+            (isset($result['version'])&& $result['version']=='v0.0.0') ||
+            (isset($result['version']) && $result['version']=='')
+        )continue;
 		query_execute_unsafe('update peer_char set brs_version="'.ltrim($result['version'],'v').'" where address="'.$peer['address'].'"');
 }
 echo 'Done';
+log::debug('Done！');
 $t2= (time() - $t1);
 if($t2>30)file_put_contents('logs/cron_',$t2." seconds: \n",FILE_APPEND);
 //-------------------------------------------------- functions -------------------------------------------------//
@@ -188,14 +209,17 @@ function query_execute_unsafe($sql){
 	global $db_link;
 	$t1=time();
 	$qq = mysqli_query($db_link, $sql);
-	$result = mysqli_fetch_assoc($qq);
-	$t2= (time() - $t1);
-	if($t2>2)file_put_contents('logs/sql_log',$t2." seconds: ".$sql."\n",FILE_APPEND);
-	return $result;
+    if(is_object($qq)){
+        $result = mysqli_fetch_assoc($qq);
+        $t2= (time() - $t1);
+        if($t2>2)file_put_contents('logs/sql_log',$t2." seconds: ".$sql."\n",FILE_APPEND);
+        return $result;
+    }
 }
 function query_to_array_unsafe($sql){
 	global $db_link;
 	$query = mysqli_query($db_link, $sql);
+    $sql_array = [];
 	while ($array = mysqli_fetch_assoc($query)) {   
 		$sql_array[] = $array;
 	}
@@ -266,18 +290,24 @@ function query_execute($sql){
 	global $db_link;
 	$t1=time();
 	$qq = mysqli_query($db_link, mysqli_real_escape_string($db_link,$sql));
-	$result = mysqli_fetch_assoc($qq);
-	$t2= (time() - $t1);
-	if($t2>2)file_put_contents('logs/sql_log',$t2." seconds: ".$sql."\n",FILE_APPEND);
-	return $result;
+    if(is_object($qq)){
+        $result = mysqli_fetch_assoc($qq);
+        $t2= (time() - $t1);
+        if($t2>2)file_put_contents('logs/sql_log',$t2." seconds: ".$sql."\n",FILE_APPEND);
+        return $result;
+    }
 }
 
 function query_to_array($sql){
 	global $db_link;
+    $sql_array=[];
 	$query = mysqli_query($db_link, mysqli_real_escape_string($db_link,$sql));
-	while ($array = mysqli_fetch_assoc($query)) {   
-		$sql_array[] = $array;
-	}
+    if(is_object($query)){
+        while ($array = mysqli_fetch_assoc($query)) {
+            $sql_array[] = $array;
+        }
+    }
+
 	return $sql_array;
 }
 
