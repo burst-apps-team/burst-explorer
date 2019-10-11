@@ -20,12 +20,15 @@ Execute once a second
         php cron_.php >> logs/cron_run_info.log &
         php cron_peers.php >> logs/cron_peers_run_info.log &
         php cron_network_status.php >> logs/cron_network_status_run_info.log &
-
+8. after install heartbeat,please remove /burst-explorer path/heartbeat/
+     rm /burst-explorer path/heartbeat/ -rf
+     
 #### How to use commands
 
 1. heartbeat start  
 2. heartbeat stop  
 3. heartbeat restart  
+4. heartbeat show  
 
 #### Participate in the contribution
 
