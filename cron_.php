@@ -7,12 +7,12 @@
 // This schedule / cronjob should run every minute
 
 include_once dirname(__FILE__).'/log.php';
+$writeDebug = true;
 
-/*$time = time();
+$time = time();
 if($time % 60 != 0){  // 每60秒执行一次
-    log::debug('cron_执行停止');
     exit();
-}*/
+}
 
 //if($_SERVER['REMOTE_ADDR'] != '8.8.4.4' && $_SERVER['REMOTE_ADDR']!='' )die('Not allowed');
 if((isset($_SERVER['REMOTE_ADDR'])&&$_SERVER['REMOTE_ADDR']!='') )die('Not allowed');
@@ -29,10 +29,9 @@ $db_db = 'burstwallet'; // Database name
 
 $db_link = @mysqli_connect($db_server, $db_user, $db_pass) or die('('.mysqli_connect_errno().')');
 @mysqli_select_db($db_link, $db_db) or die('(2)');
-log::debug('mysqli连接成功！');
+
 $memcached = new Memcached();
-$memcached->addServer("127.0.0.1", 11211);
-log::debug('memcached连接成功！');
+$isMemcahed = $memcached->addServer("127.0.0.1", 11211);
 
 $mail_headers = "MIME-Version: 1.0" . "\r\n";
 $mail_headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
@@ -173,7 +172,7 @@ foreach($peers as $peer){
 		query_execute_unsafe('update peer_char set brs_version="'.ltrim($result['version'],'v').'" where address="'.$peer['address'].'"');
 }
 echo 'Done';
-log::debug('Done！');
+log::cron('Done！',$writeDebug);
 $t2= (time() - $t1);
 if($t2>30)file_put_contents('logs/cron_',$t2." seconds: \n",FILE_APPEND);
 //-------------------------------------------------- functions -------------------------------------------------//

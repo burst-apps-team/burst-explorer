@@ -4,26 +4,37 @@
 # Devolped by Zoh - https://twitter.com/Zoh63392187
 # Donations: BURST-NMEA-GRHZ-BRFE-5SG6P
 */
+include_once dirname(__FILE__).'/log.php';
+$writeDebug = true;
+
+$time = time();
+if($time % (1*60*60) != 0 ){
+	exit();
+}
+log::cron_peers('cron_peers执行',$writeDebug);
+
 
 //if($_SERVER['REMOTE_ADDR'] != '8.8.4.4' && $_SERVER['REMOTE_ADDR']!='' )die('Not allowed');
-if($_SERVER['REMOTE_ADDR']!='' )die('Not allowed');
+if((isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] !='') )die('Not allowed');
 
 // Runs every 20 minute
 ini_set('max_execution_time', 1200);
 
 $t1=time();
 // Database
-$db_server = '127.0.0.1:3306';
-$db_user = 'burstwallet';
-$db_pass = 'burstwallet';
-$db_db = 'brs_master';
+$db_server = '127.0.0.1:3306'; // ip:port
+$db_user = 'root'; // Database username
+$db_pass = ''; // Database password
+$db_db = 'burstwallet'; // Database name
 
 $db_link = @mysqli_connect($db_server, $db_user, $db_pass) or die('('.mysqli_connect_errno().')');
 @mysqli_select_db($db_link, $db_db) or die('(2)');
 
 $memcached = new Memcached(); 
-$memcached->addServer("localhost", 11211);
-
+$isMemcached = $memcached->addServer("127.0.0.1", 11211);
+if($isMemcached){
+	log::cron_peers('memecached连接成功',$writeDebug);
+}
 $peers = get_peers();
 foreach($peers as $ip){
 	$pos = strpos($ip['address'], ':');
@@ -94,7 +105,7 @@ function get_peers(){
 	return $result;	
 }
 function pingDomain($domain){
-    if(@fsockopen($domain, 8123, $errno, $errstr, 0.3)){
+    if($file = @fsockopen($domain, 8123, $errno, $errstr, 0.3)){
 		fclose($file);
         return true;
 	}    
@@ -114,6 +125,7 @@ function query_execute($sql){
 function query_to_array($sql){
 	global $db_link;
 	$query = mysqli_query($db_link, mysqli_real_escape_string($db_link,$sql));
+    $sql_array = [];
 	while ($array = mysqli_fetch_assoc($query)) {   
 		$sql_array[] = $array;
 	}

@@ -11,10 +11,9 @@ Requirements:
 * PHP 7.2
 * PHP Extension: Memcached, bcmath, curl, json, mbstring, mcrypt, mail and mysqli
 * PHP short tags enabled
-* Cronjob for cron_.php every 60 second (Monitor cron execution times in logs/cron_)
-* Cronjob for cron_network_status.php every 12 hours (Monitor cron execution times in logs/cron_network_status)
-* Cronjob for cron_peers.php every hour (Monitor cron execution times in logs/cron_peers)
 * Atleast 16GB ram avaliable
+* Install the heartbeat,see ./heartbeat/README.md
+   this heartbeat will Cronjob for cron_.php every 60 second (Monitor cron execution times in logs/cron_);  Cronjob for cron_network_status.php every 12 hours (Monitor cron execution times in logs/cron_network_status); Cronjob for cron_peers.php every hour (Monitor cron execution times in logs/cron_peers)
 
 Installation:
 * Make sure the BRS wallet is the newest release and in sync
