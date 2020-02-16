@@ -6,7 +6,6 @@ $nr = automated_transactions_count();
 $pages = ($_GET['page'])?(int)$_GET['page']:0;
 $automated_transactions = automated_transactions(0,$pages);
 echo show_pages($pages,'ats',$nr);
-
 ?>
 <table class="table table-striped small">
 	<thead class="thead-light">
@@ -21,20 +20,27 @@ echo show_pages($pages,'ats',$nr);
 				Name
 			</th>
 			<th>
-				Issuer
+				Creator
+			</th>
+			<th>
+				Contract Address 
 			</th>
 		</tr>
 	</thead>
 <?
 
 foreach ($automated_transactions as $at){
-$block = get_block_info($at['height']);
-$at_info = at_info($at['id']);
-$tid = microtime(true)*10000;
-?>
+	//echo'<pre>';
+	//print_r($at);die;
+	//echo'</pre>';
+	$block = get_block_info($at['height']);
+	$at_info = at_info($at['id']);
+	debug(false,$at);
+	$tid = microtime(true)*10000;
+	?>
 	<tr>
 		<td>
-			<a href="#" data-toggle="modal" data-target="#myModal<?=$tid+1?>"><span class="word_break"><?=$at['db_id']?></span></a>
+			<a href="#" data-toggle="modal" data-target="#myModal<?=$tid+1?>"><span><?=$at['db_id']?></span></a>
 			<div>
 				<!-- Modal -->
 				<div class="modal fade topmargin" id="myModal<?=$tid+1?>" role="dialog">
@@ -51,7 +57,7 @@ $tid = microtime(true)*10000;
 											Name
 										</td>
 										<td>
-											<?=$at['name']?>
+											<?=display_str($at['name'])?>
 										</td>
 									</tr>
 									<tr>
@@ -59,7 +65,7 @@ $tid = microtime(true)*10000;
 											Description
 										</td>
 										<td>
-											<div class="word_break"><?=$at['description']?></div>
+											<div class="word_break"><?=display_str($at['description'])?></div>
 										</td>
 									</tr>
 									<tr>
@@ -237,7 +243,7 @@ $tid = microtime(true)*10000;
 			</div>
 		</td>
 		<td>
-			<a href="#" data-toggle="modal" data-target="#myModal<?=$tid+2?>"><div class="word_break"><?=blocks_short_name(display_str($at['name']),26)?></div></a>
+			<a href="#" data-toggle="modal" data-target="#myModal<?=$tid+2?>"><div class=""><?=blocks_short_name(display_str($at['name']),26)?></div></a>
 			<div>
 				<!-- Modal -->
 				<div class="modal fade topmargin" id="myModal<?=$tid+2?>" role="dialog">
@@ -254,7 +260,7 @@ $tid = microtime(true)*10000;
 											Name
 										</td>
 										<td>
-											<?=$at['name']?>
+											<?=display_str($at['name'])?>
 										</td>
 									</tr>
 									<tr>
@@ -262,7 +268,7 @@ $tid = microtime(true)*10000;
 											Description
 										</td>
 										<td>
-											<div class="word_break"><?=$at['description']?></div>
+											<div class="word_break"><?=display_str($at['description'])?></div>
 										</td>
 									</tr>
 									<tr>
@@ -306,6 +312,10 @@ $tid = microtime(true)*10000;
 		<td>
 			<a href="?action=account&account=<?=show_account_id_name_and_or_rs($at['creator_id'],7)?>"><?=show_account_id_name_and_or_rs($at['creator_id'],6)?></a><br>
 			<?=blocks_short_name(show_account_id_name_and_or_rs($at['creator_id'],1),26)?>
+		</td>
+		<td>
+			<a href="?action=account&account=<?=show_account_id_name_and_or_rs($at['id'],7)?>"><?=show_account_id_name_and_or_rs($at['id'],6)?></a><br>
+			<?=blocks_short_name(show_account_id_name_and_or_rs($at['id'],1),26)?>
 		</td>
 	</tr>
 <?

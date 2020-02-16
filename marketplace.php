@@ -4,7 +4,9 @@ $nr = get_market_count();
 $pages = ($_GET['page'])?(int)$_GET['page']:0;
 $all_goods = get_market_info(0,$pages);
 echo show_pages($pages,'marketplace',$nr);
+
 ?>
+
 <table class="table table-striped small">
 	<thead class="thead-light">
 		<tr>
@@ -29,9 +31,12 @@ echo show_pages($pages,'marketplace',$nr);
 		</tr>
 	</thead>
 <?
+
 foreach ($all_goods as $goods){
 $block = get_block_info($goods['height']);
 $tid = microtime(true)*10000;
+//print_r($goods);die;
+
 ?>
 	<tr>
 		<td>
@@ -52,7 +57,7 @@ $tid = microtime(true)*10000;
 											Name
 										</td>
 										<td>
-											<?=$goods['name']?>
+											<?=display_str($goods['name'])?>
 										</td>
 									</tr>
 									<tr>
@@ -60,7 +65,7 @@ $tid = microtime(true)*10000;
 											Description
 										</td>
 										<td>
-											<div class="word_break"><?=$goods['description']?></div>
+											<div class="word_break"><?=display_str($goods['description'])?></div>
 										</td>
 									</tr>
 									<tr>
@@ -265,7 +270,7 @@ $tid = microtime(true)*10000;
 											Name
 										</td>
 										<td>
-											<?=$goods['name']?>
+											<?=display_str($goods['name'])?>
 										</td>
 									</tr>
 									<tr>
@@ -273,7 +278,7 @@ $tid = microtime(true)*10000;
 											Description
 										</td>
 										<td>
-											<div class="word_break"><?=$goods['description']?></div>
+											<div class="word_break"><?=display_str($goods['description'])?></div>
 										</td>
 									</tr>
 									<tr>
